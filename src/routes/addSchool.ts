@@ -1,8 +1,22 @@
 import { Request, Response } from 'express';
 import connection from '../db';
+import {z} from "zod";
+// Input validation using ZOD library 
+const schoolSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  address: z.string().min(1, "Address is required"),
+  latitude: z.number().refine(val => Math.abs(val) <= 90, {
+    message: "Latitude must be between -90 and 90"
+  }),
+  longitude: z.number().refine(val => Math.abs(val) <= 180, {
+    message: "Longitude must be between -180 and 180"
+  }) 
+});
 
+// add school logic 
 export const addSchool = async (req: Request, res: Response) => {
-  const { name, address, latitude, longitude } = req.body;
+  const validatedData = schoolSchema.parse(req.body);
+  const { name, address, latitude, longitude } = validatedData;
 
   // Input validation
   if (!name || !address || !latitude || !longitude) {

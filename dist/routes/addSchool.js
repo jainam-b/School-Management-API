@@ -14,8 +14,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.addSchool = void 0;
 const db_1 = __importDefault(require("../db"));
+const zod_1 = require("zod");
+// Input validation using ZOD library 
+const schoolSchema = zod_1.z.object({
+    name: zod_1.z.string().min(1, "Name is required"),
+    address: zod_1.z.string().min(1, "Address is required"),
+    latitude: zod_1.z.number().refine(val => Math.abs(val) <= 90, {
+        message: "Latitude must be between -90 and 90"
+    }),
+    longitude: zod_1.z.number().refine(val => Math.abs(val) <= 180, {
+        message: "Longitude must be between -180 and 180"
+    })
+});
+// add school logic 
 const addSchool = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, address, latitude, longitude } = req.body;
+    const validatedData = schoolSchema.parse(req.body);
+    const { name, address, latitude, longitude } = validatedData;
     // Input validation
     if (!name || !address || !latitude || !longitude) {
         return res.status(400).json({ error: 'All fields are required.' });
